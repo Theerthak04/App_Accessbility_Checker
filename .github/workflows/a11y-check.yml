@@ -42,6 +42,5 @@ jobs:
           subject: Accessibility Report for PR #${{ github.event.pull_request.number }}
           to: ${{ steps.get_email.outputs.email }}
           from: Accessibility Bot <${{ secrets.SMTP_USERNAME }}>
-          content_type: text/html
-          body: |
+          html_body: |
             $(cat accessibility-report.html)
