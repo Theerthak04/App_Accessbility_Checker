@@ -7,7 +7,6 @@ on:
 jobs:
   accessibility:
     runs-on: ubuntu-latest
-    name: Run axe-core accessibility check
     steps:
       - uses: actions/checkout@v4
 
@@ -22,8 +21,43 @@ jobs:
       - name: Run accessibility check
         run: node run-accessibility-check.js
 
-      - name: Upload report artifact
-        uses: actions/upload-artifact@v4
+      - name: Convert accessibility-report.json to HTML
+        run: |
+          node -e "
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync('accessibility-report.json', 'utf8'));
+          // Simple HTML report generation
+          let html = '<h1>Accessibility Report</h1>';
+          if (results.violations.length === 0) {
+            html += '<p>No accessibility issues found.</p>';
+          } else {
+            html += '<ul>';
+            results.violations.forEach(v => {
+              html += `<li><strong>${v.id}</strong>: ${v.description} - Impact: ${v.impact} - Nodes affected: ${v.nodes.length}</li>`;
+            });
+            html += '</ul>';
+          }
+          fs.writeFileSync('accessibility-report.html', html);
+          "
+
+      - name: Get PR author GitHub noreply email
+        id: get_email
+        run: |
+          USERNAME=${{ github.event.pull_request.user.login }}
+          USER_ID=${{ github.event.pull_request.user.id }}
+          EMAIL="${USER_ID}+${USERNAME}@users.noreply.github.com"
+          echo "email=$EMAIL" >> $GITHUB_OUTPUT
+
+      - name: Send accessibility report email to PR author
+        uses: dawidd6/action-send-mail@v3
         with:
-          name: accessibility-report
-          path: accessibility-report.json
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Accessibility Report for PR #${{ github.event.pull_request.number }}
+          to: ${{ steps.get_email.outputs.email }}
+          from: Accessibility Bot <${{ secrets.SMTP_USERNAME }}>
+          content_type: text/html
+          body: |
+            $(cat accessibility-report.html)
