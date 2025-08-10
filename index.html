@@ -1,0 +1,16 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bad A11y Page</title>
+</head>
+<body>
+  <h1>Welcome</h1>
+  <button>Click Me</button> <!-- ❌ No accessible name or ARIA label -->
+  <img src="image.jpg"> <!-- ❌ Missing alt text -->
+  <form>
+    <input type="text" id="name"> <!-- ❌ No label -->
+    <input type="submit" value="Submit">
+  </form>
+</body>
+</html>

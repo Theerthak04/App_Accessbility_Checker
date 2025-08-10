@@ -1,0 +1,29 @@
+name: Accessibility Check on PR
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  accessibility:
+    runs-on: ubuntu-latest
+    name: Run axe-core accessibility check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run accessibility check
+        run: node run-accessibility-check.js
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: accessibility-report.json
